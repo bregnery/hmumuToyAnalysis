@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+import glob
+import ROOT as root
+from src.helpers import *
+
+root.gROOT.SetBatch(True)
+
+f = root.TFile("wHmumu.root")
+
+canvas = root.TCanvas()
+
+hist = f.Get("jjmmPtDiff")
+
+hist.Fit("gaus","","",-100,100)
+
+xMin = -200
+xMax = 200
+yMin = 0
+yMax = 20
+xTitle = "Pt Difference [GeV/c^{2}]"
+
+axisHist = root.TH2F("axisHist","",1,xMin,xMax,1,yMin,yMax)
+axisHist.GetXaxis().SetTitle(xTitle)
+axisHist.GetYaxis().SetTitle("Events/Bin")
+axisHist.Draw()
+
+
+hist.Draw("same")
+
+canvas.SaveAs("Hist_jjmmDiff.png")
