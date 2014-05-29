@@ -223,9 +223,10 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(jetE183,"Jet Pt [GeV/c]","Events");
   jetE183->SetStats(1);
   jetE183->Sumw2();
-
-
-     
+  TH1F* genJMass = new TH1F("genJMass","",50,0,200);
+  setHistTitles(genJMass,"Dijet Mass [GeV/c^{2}]","Events");
+  genJMass->SetStats(1);
+  genJMass->Sumw2();
   
 
   ///////////////////////////
@@ -651,9 +652,18 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			jjfitM->Fill(jjfitMass,weight);
 
 			
-			// Jet Pt and Gen Jet Pt comparison
-			Double_t jet1Ptdiff = (jets[index1].Pt()-genJets[0].Pt())/genJets[0].Pt();
-			Double_t jet2Ptdiff = (jets[index2].Pt()-genJets[1].Pt())/genJets[1].Pt();
+			//Jet Pt and Gen Jet Pt comparison
+			Double_t jet1Ptdiff = (jets[index1].Pt()-genJets[index1].Pt())/genJets[index1].Pt();
+			Double_t jet2Ptdiff = (jets[index2].Pt()-genJets[index2].Pt())/genJets[index2].Pt();
+
+			//Dijet Mass from gen Jets
+			Double_t genE = (genJets[index1].E()+genJets[index2].E());
+			Double_t genPx = (genJets[index1].Px()+genJets[index2].Px());
+			Double_t genPy = (genJets[index1].Py()+genJets[index2].Py());
+			Double_t genPz = (genJets[index1].Pz()+genJets[index2].Pz());
+			Double_t genjetM = TMath::Sqrt((genE*genE)-(genPx*genPx)-(genPy*genPy)-(genPz*genPz));
+			genJMass->Fill(genjetM,weight);
+
 
 			//Fill jet Pt histograms
 			if(jets[index1].Pt() >= 30 && jets[index1].Pt() <= 80){
@@ -788,4 +798,5 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   jetE1218->Write();
   jetP183->Write();
   jetE183->Write();
+  genJMass->Write();
 }
