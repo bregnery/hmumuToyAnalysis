@@ -191,6 +191,41 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(jjfitM,"Fitted Dijet Mass [GeV/c^{2}]","Events");
   jjfitM->SetStats(1);
   jjfitM->Sumw2();
+  TH1F* jetP38 = new TH1F("jetP38","",3,30,80);
+  setHistTitles(jetP38,"Jet Pt [GeV/c]","Events");
+  jetP38->SetStats(1);
+  jetP38->Sumw2();
+  TH1F* jetE38 = new TH1F("jetE38","",20,-1,1);
+  setHistTitles(jetE38,"Jet Pt [GeV/c]","Events");
+  jetE38->SetStats(1);
+  jetE38->Sumw2();
+  TH1F* jetP812 = new TH1F("jetP812","",3,80,120);
+  setHistTitles(jetP812,"Jet Pt [GeV/c]","Events");
+  jetP812->SetStats(1);
+  jetP812->Sumw2();
+  TH1F* jetE812 = new TH1F("jetE812","",20,-1,1);
+  setHistTitles(jetE812,"Jet Pt [GeV/c]","Events");
+  jetE812->SetStats(1);
+  jetE812->Sumw2();
+  TH1F* jetP1218 = new TH1F("jetP1218","",3,120,180);
+  setHistTitles(jetP1218,"Jet Pt [GeV/c]","Events");
+  jetP1218->SetStats(1);
+  jetP1218->Sumw2();
+  TH1F* jetE1218 = new TH1F("jetE1218","",20,-1,1);
+  setHistTitles(jetE1218,"Jet Pt [GeV/c]","Events");
+  jetE1218->SetStats(1);
+  jetE1218->Sumw2();
+  TH1F* jetP183 = new TH1F("jetP183","",3,180,300);
+  setHistTitles(jetP183,"Jet Pt [GeV/c]","Events");
+  jetP183->SetStats(1);
+  jetP183->Sumw2();
+  TH1F* jetE183 = new TH1F("jetE183","",20,-1,1);
+  setHistTitles(jetE183,"Jet Pt [GeV/c]","Events");
+  jetE183->SetStats(1);
+  jetE183->Sumw2();
+
+
+     
   
 
   ///////////////////////////
@@ -614,6 +649,46 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			Double_t jjfitPz = (j1fit.Pz() + j2fit.Pz());
 			Double_t jjfitMass = TMath::Sqrt(jjfitE*jjfitE - jjfitPx*jjfitPx - jjfitPy*jjfitPy - jjfitPz*jjfitPz);
 			jjfitM->Fill(jjfitMass,weight);
+
+			
+			// Jet Pt and Gen Jet Pt comparison
+			Double_t jet1Ptdiff = (jets[index1].Pt()-genJets[0].Pt())/genJets[0].Pt();
+			Double_t jet2Ptdiff = (jets[index2].Pt()-genJets[1].Pt())/genJets[1].Pt();
+
+			//Fill jet Pt histograms
+			if(jets[index1].Pt() >= 30 && jets[index1].Pt() <= 80){
+				jetP38->Fill(jets[index1].Pt(),weight);
+				jetE38->Fill(jet1Ptdiff,weight);
+			}
+			else if(jets[index1].Pt() >= 80 && jets[index1].Pt() <= 120){
+				jetP812->Fill(jets[index1].Pt(),weight);
+				jetE812->Fill(jet1Ptdiff,weight);
+			}
+			else if(jets[index1].Pt() >= 120 && jets[index2].Pt() <= 180){
+				jetP1218->Fill(jets[index1].Pt(),weight);
+				jetE1218->Fill(jet1Ptdiff,weight);
+			}
+			else if(jets[index1].Pt() >= 180 && jets[index1].Pt() <= 300){
+				jetP183->Fill(jets[index1].Pt(),weight);
+				jetE183->Fill(jet1Ptdiff,weight);
+			}
+
+			if(jets[index2].Pt() >= 30 && jets[index2].Pt() <= 80){
+				jetP38->Fill(jets[index2].Pt(),weight);
+				jetE38->Fill(jet2Ptdiff,weight);
+			}
+			else if(jets[index2].Pt() >= 80 && jets[index2].Pt() <= 120){
+				jetP812->Fill(jets[index2].Pt(),weight);
+				jetE812->Fill(jet2Ptdiff,weight);
+			}
+			else if(jets[index2].Pt() >= 120 && jets[index2].Pt() <= 180){
+				jetP1218->Fill(jets[index2].Pt(),weight);
+				jetE1218->Fill(jet2Ptdiff,weight);
+			}
+			else if(jets[index2].Pt() >= 180 && jets[index2].Pt() <= 300){
+				jetP183->Fill(jets[index2].Pt(),weight);
+				jetE183->Fill(jet2Ptdiff,weight);
+			}
 			
 			
 			//cout << jets[index1].Pt() << " " << sigmaJet1 << endl;
@@ -705,4 +780,12 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   j1fitPt->Write();
   j2fitPt->Write();
   jjfitM->Write();
+  jetP38->Write();
+  jetE38->Write();
+  jetP812->Write();
+  jetE812->Write();
+  jetP1218->Write();
+  jetE1218->Write();
+  jetP183->Write();
+  jetE183->Write();
 }
