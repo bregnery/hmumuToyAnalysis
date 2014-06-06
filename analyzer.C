@@ -28,12 +28,12 @@
 
 
 // Calculate Pt error
-Double_t sigma(Double_t Pt){
-  Double_t sigma = Pt*(TMath::Sqrt(33.44/(Pt*Pt) + 0.0016));
+Double_t sigma(Double_t jetPt, Double_t genJetPt){
+  Double_t sigma =  (jetPt-genJetPt)/genJetPt;
 	return sigma;
 }
 
-Double_t calcPtJet2(Double_t ptJet1, Double_t phiJet1, Double_t phiJet2, Double_t dimuonPt, Double_t dimuonPhi){
+Double_t calcPtJet2(Double_t ptJet1, Double_t phiJet1, Double_t dimuonPt, Double_t dimuonPhi){
 	Double_t pxJet2 = ptJet1*(TMath::Cos(phiJet1)) + dimuonPt*(TMath::Cos(dimuonPhi));
 	Double_t pyJet2 = ptJet1*(TMath::Sin(phiJet1)) + dimuonPt*(TMath::Sin(dimuonPhi));
 	Double_t ptJet2 = TMath::Sqrt(pxJet2*pxJet2 + pyJet2*pyJet2);
@@ -49,28 +49,27 @@ class CalcChi2{
 		const Double_t ptJet1_;
 		const Double_t ptJet2_;
 		const Double_t phiJet1_;
-		const Double_t phiJet2_;
 		const Double_t sigmaJet1_;
 		const Double_t sigmaJet2_;
 		const Double_t dimuonPt_;
 		const Double_t dimuonPhi_;
 	public:
 		CalcChi2();
-		CalcChi2(Double_t ptJet1, Double_t ptJet2, Double_t phiJet1, Double_t phiJet2, Double_t sigmaJet1, Double_t sigmaJet2, Double_t dimuonPt, Double_t dimuonPhi);
+		CalcChi2(Double_t ptJet1, Double_t ptJet2, Double_t phiJet1, Double_t sigmaJet1, Double_t sigmaJet2, Double_t dimuonPt, Double_t dimuonPhi);
   Double_t operator()(double ptJet1Param);
 };
 
-CalcChi2::CalcChi2():ptJet1_(0), ptJet2_(0), phiJet1_(0), phiJet2_(0), sigmaJet1_(0), sigmaJet2_(0), dimuonPt_(0), dimuonPhi_(0){
+CalcChi2::CalcChi2():ptJet1_(0), ptJet2_(0), phiJet1_(0), sigmaJet1_(0), sigmaJet2_(0), dimuonPt_(0), dimuonPhi_(0){
 
 }
 
-CalcChi2::CalcChi2(Double_t ptJet1, Double_t ptJet2, Double_t phiJet1, Double_t phiJet2, Double_t sigmaJet1, Double_t sigmaJet2, Double_t dimuonPt, Double_t dimuonPhi):
-         ptJet1_(ptJet1), ptJet2_(ptJet2), phiJet1_(phiJet1), phiJet2_(phiJet2), sigmaJet1_(sigmaJet1), sigmaJet2_(sigmaJet2), dimuonPt_(dimuonPt), dimuonPhi_(dimuonPhi){
+CalcChi2::CalcChi2(Double_t ptJet1, Double_t ptJet2, Double_t phiJet1, Double_t sigmaJet1, Double_t sigmaJet2, Double_t dimuonPt, Double_t dimuonPhi):
+         ptJet1_(ptJet1), ptJet2_(ptJet2), phiJet1_(phiJet1), sigmaJet1_(sigmaJet1), sigmaJet2_(sigmaJet2), dimuonPt_(dimuonPt), dimuonPhi_(dimuonPhi){
 }
 
 Double_t CalcChi2::operator()(double ptJet1Param){
 	Double_t ptJet1pred = ptJet1Param;
-	Double_t ptJet2pred = calcPtJet2(ptJet1pred,phiJet1_,phiJet2_,dimuonPt_,dimuonPhi_);
+	Double_t ptJet2pred = calcPtJet2(ptJet1pred,phiJet1_,dimuonPt_,dimuonPhi_);
 	Double_t Chi2 = ((ptJet1_-ptJet1pred)*(ptJet1_-ptJet1pred))/sigmaJet1_ + ((ptJet2_-ptJet2pred)*(ptJet2_-ptJet2pred))/sigmaJet2_;
 	return Chi2;
 }
@@ -120,7 +119,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(H2JetPhi,"cos(Phi)","Events");
   H2JetPhi->SetStats(1);
   H2JetPhi->Sumw2();
-  TH1F* DiMuonPt = new TH1F("DiMuonPt","",100,0,200);
+  TH1F* DiMuonPt = new TH1F("DiMuonPt","",20,0,200);
   setHistTitles(DiMuonPt,"Pt(DiMuon) [GeV/c]","Events");
   DiMuonPt->SetStats(1);
   DiMuonPt->Sumw2();
@@ -444,7 +443,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
     {
       weight *= lumiWeights.weight(nPU);
     }
-    DiMuonPt->Fill(recoCandPt,weight);
+    //DiMuonPt->Fill(recoCandPt,weight);
 
     // Jet Part
     // Do basic selection on jets and JER corrections
@@ -607,9 +606,9 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			}
 			
 			//Select Jet Pt values using chi squared minimization 
-			Double_t sigmaJet1 = sigma(jets[index1].Pt());
-			Double_t sigmaJet2 = sigma(jets[index2].Pt());
-			CalcChi2 c(jets[index1].Pt(),jets[index2].Pt(),jets[index1].Phi(),jets[index2].Phi(),sigmaJet1,sigmaJet2,recoCandPt,recoCandPhi);
+			Double_t sigmaJet1 = sigma(jets[index1].Pt(),genJets[index1].Pt());
+			Double_t sigmaJet2 = sigma(jets[index2].Pt(),genJets[index2].Pt());
+			CalcChi2 c(jets[index1].Pt(),jets[index2].Pt(),jets[index1].Phi(),sigmaJet1,sigmaJet2,recoCandPt,recoCandPhi);
 			Double_t loBound = jets[index1].Pt() - 5*sigmaJet1;
 			Double_t upBound = jets[index1].Pt() + 5*sigmaJet1;
 			/*
@@ -633,7 +632,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			cout << "Found minimum: x = " << minChi2.XMinimum() << " f(x) = " << minChi2.FValMinimum() << " Status: " << minChi2.Status() << endl;
 			*/
 			Double_t jet1FitPt = minChi2.XMinimum();
-			Double_t jet2FitPt =calcPtJet2(minChi2.XMinimum(),jets[index1].Phi(),jets[index2].Phi(),recoCandPt,recoCandPhi);
+			Double_t jet2FitPt =calcPtJet2(minChi2.XMinimum(),jets[index1].Phi(),recoCandPt,recoCandPhi);
 			Double_t DiffMeasFitJ1 = jets[index1].Pt() - jet1FitPt;
 			Double_t DiffMeasFitJ2 = jets[index2].Pt() - jet2FitPt;
 			DiffMF->Fill(DiffMeasFitJ1,weight);
@@ -710,6 +709,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			//cout << "Jet 2 Pt MET0: " << jet2PMET0.Pt() << endl;
 			 
 			if(jetM >= 60 && jetM <= 110){
+			  DiMuonPt->Fill(recoCandPt,weight);
 			  //jetMass->Fill(jetM,weight);
 			  //if(cosPhi <= -0.95){
 			    //jetMass->Fill(jetM,weight);
