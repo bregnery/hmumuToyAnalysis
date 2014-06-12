@@ -27,9 +27,9 @@
 #include "Math/GSLMinimizer1D.h"
 
 
-// Calculate Pt error
+// Calculate Pt error as resolution
 Double_t sigma(Double_t jetPt, Double_t genJetPt){
-  Double_t sigma =  (jetPt-genJetPt)/genJetPt;
+  Double_t sigma =  TMath::Abs(jetPt-genJetPt);
 	return sigma;
 }
 
