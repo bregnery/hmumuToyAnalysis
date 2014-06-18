@@ -39,11 +39,35 @@ Double_t calcPtJet2(Double_t ptJet1, Double_t phiJet1, Double_t dimuonPt, Double
 	Double_t ptJet2 = TMath::Sqrt(pxJet2*pxJet2 + pyJet2*pyJet2);
 	return ptJet2;
 }
+/*
+Double_t invariantMass(TLorentzVector Vec1, TLorentzVector Vec2){
+	TLorentzVector DiVec = Vec1 + Vec2;
+} 
+*/	
 
 /*
-  CalcChi2 c(0.,0.,0.,...)
-  c(4.567);
-*/
+class dijet{
+	private:
+		const TLorentzVector jet1_;
+		const TLorentzVector jet2_;
+	public:
+		dijet();
+		dijet(TLorentzVector jet1, TLorentzVector jet2);
+		bool operator<();
+};
+
+dijet::dijet():jet1_(0), jet2_(0){--
+}
+
+dijet::dijet(TLorentzVector jet1, TLorentzVector jet2):jet1_(jet1), jet2_(jet2){
+}
+
+bool dijet::operator<(){
+}
+*/		
+		
+		
+
 class CalcChi2{
 	private:
 		const Double_t ptJet1_;
@@ -226,6 +250,10 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(genJMass,"Dijet Mass [GeV/c^{2}]","Events");
   genJMass->SetStats(1);
   genJMass->Sumw2();
+  TH1F* diJetOMass = new TH1F("diJetOMass","",50,0,200);
+  setHistTitles(diJetOMass,"Dijet Mass [GeV/c^{2}","Events");
+  diJetOMass->SetStats(1);
+  diJetOMass->Sumw2();
   
 
   ///////////////////////////
@@ -518,6 +546,70 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 	  for (unsigned iJet=0; iJet < jets.size(); iJet++){
 		nJetsEtHist->Fill(jets[iJet].Et(),weight);
 	  }
+	  // create dijet Pt pairs
+	/*
+	if(jets.size()>=2 && jets.size()<10){
+	  int njets = jets.size();
+	  int count = 0;
+	  int ndijets = ((jets.size()*jets.size()) - jets.size())/2;
+	  double dijetPt[ndijets];
+	  int pair[ndijets][2];
+	  //cout << "number of dijet combs: " << ndijets << endl;
+	  for (int iJ=0; iJ < njets; iJ++){
+		for (int j=0; j < njets; j++){
+				if(iJ < j){
+					count++;
+					//cout << "count: " << count << endl;
+					dijetPt[count] = jets[iJ].Pt() + jets[j].Pt();
+					pair[count][0] = iJ;
+					pair[count][1] = j;
+			}
+		}
+	  } 
+	  // Sort Jets based on dijet Pt
+	  //int idj,j,first;
+	  //TLorentzVector Temp;
+	
+	  int index = 0;
+   	  for (int sta = index; sta < ndijets; sta++) {
+        	if (dijetPt[index] < dijetPt[sta]) {
+            		index = sta;
+        	}
+    	  }
+	  cout << "index: " << index << endl;
+	  cout << "Highest Pair: " << pair[index][1] << " " << pair[index][2] << endl;
+	
+	  //Calculate invariant dijet Mass
+  	  Double_t jjE = (jets[pair[index][1]].E()+jets[pair[index][2]].E());
+	  Double_t jjPx = (jets[pair[index][1]].Px()+jets[pair[index][2]].Px());
+	  Double_t jjPy = (jets[pair[index][1]].Py()+jets[pair[index][2]].Py());
+	  Double_t jjPz = (jets[pair[index][1]].Pz()+jets[pair[index][2]].Pz());
+	  Double_t jjM = TMath::Sqrt((jjE*jjE)-(jjPx*jjPx)-(jjPy*jjPy)-(jjPz*jjPz));
+	
+	  for(idj=0; idj<ndijets; idj++){
+		first = 0;
+		for(j=0; j<ndijets;j++){
+			if(dijet[first].Pt() < dijet[j].Pt()){
+				first = j;
+			}
+		}
+		if(first>idj){
+			Temp = dijet[first];
+			dijet[first] = dijet[idj];
+			dijet[idj] = Temp;
+		}
+	  }
+	  */  
+	  for(int d=0; d<ndijets; d++){
+		cout << "Dijet Pt: " << dijetPt[d] << endl;
+	  }
+	  cout << "Largest: " << dijetPt[index] << endl;
+	  
+	  // Plot jet mass using highest dijet Pt pair
+	  //diJetOMass->Fill(jjM,weight);
+	
+	}
+
 	  for (unsigned iJet=0; iJet < jets.size(); iJet++){
 		if (jets[iJet].Pt() > 20){
 			nJetsHist->Fill(jets.size(),weight);
@@ -799,4 +891,5 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   jetP183->Write();
   jetE183->Write();
   genJMass->Write();
+  diJetOMass->Write();
 }
