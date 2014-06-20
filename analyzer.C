@@ -15,6 +15,7 @@
 #include <TLegend.h>
 #include <TF1.h>
 #include <TRandom3.h>
+#include <algorithm>
 
 #include <vector>
 
@@ -71,8 +72,8 @@ TLorentzVector Dijet::GetJet2() const {
 	return jet2_;
 }
 		
-bool operator<(const Dijet dj1, const Dijet dj2){
-	return dj1.GetDijet().Pt() < dj2.GetDijet().Pt();
+bool wayToSort(const Dijet &dj1, const Dijet &dj2){
+	return dj1.GetDijet().Pt() > dj2.GetDijet().Pt();
 }
 
 		
@@ -556,22 +557,33 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 	  for (unsigned iJet=0; iJet < jets.size(); iJet++){
 		nJetsEtHist->Fill(jets[iJet].Et(),weight);
 	  }
-	  // create dijet Pt pairs
+	  // create dijet Pt pairsj
 	  int njets = jets.size();
 	  std::vector<Dijet> dijetvec;
+
 	if(njets >= 2){
 	  for(int d=0; d<njets; d++){
 		for(int k=0; k<njets; k++){
 			if(d<k){
                                 Dijet dijetTmp = Dijet(jets[d],jets[k]);
 				dijetvec.push_back(dijetTmp);
-				cout << "Dijet Pt: " << dijetTmp.GetDijet().Pt() << endl;
+				//cout << "Dijet Pt: " << dijetTmp.GetDijet().Pt() << endl;
 			}
 		}
 	  }
 	}
-				
-			
+	  std::sort(dijetvec.begin(),dijetvec.end(),wayToSort);
+	  Dijet dijetMax;
+	  int pairs = (njets*njets - njets)/2;
+	  for(int l=0; l<pairs; l++){
+			if(l == 0){
+				dijetMax = dijetvec[l];
+			}
+		Dijet dijetTmp2 = dijetvec[l];
+		cout << "Dijet Pt: " << dijetTmp2.GetDijet().Pt() << endl;
+	  }		
+	  cout << "New event" << endl;
+	  //Dijet dijetMax = dijetvec[0];
 	/*
 	if(jets.size()>=2 && jets.size()<10){
 	  int njets = jets.size();
@@ -621,7 +633,9 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 		if(first>idj){
 			Temp = dijet[first];
 			dijet[first] = dijet[idj];
-			dijet[idj] = Temp;
+			
+
+dijet[idj] = Temp;
 		}
 	  }
 	  *
@@ -649,6 +663,9 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 	  }
 	  if (njetsel >=2){ //&& njetsel <=3){
 	    if(jets[index1].Pt()>=30 && jets[index2].Pt()>=30){
+			
+			//Plot the dijet mass for the greatest dijet Pt pair
+	  		diJetOMass->Fill(dijetMax.GetDijet().M(),weight);
 	      
                         //Solve for 2 Jet Invariant Mass
 			Double_t E = (jets[index1].E()+jets[index2].E());
@@ -657,8 +674,9 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			Double_t Pz = (jets[index1].Pz()+jets[index2].Pz());
 			jetM = TMath::Sqrt((E*E)-(Px*Px)-(Py*Py)-(Pz*Pz));
 			//cout << "Jet Mass Comp: " << jetM;
-			
-			TLorentzVector DIjet = jets[index1] + jets[index2];
+			jetMass->Fill(jetM,weight);
+	
+			//TLorentzVector DIjet = jets[index1] + jets[index2];
 			//cout << "Jet Mass Dijet: " << DIjet.M() << endl;
 			
 			//Solve for Dijet Pt
@@ -695,7 +713,6 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			Double_t Pz1MET0 = (jet1PMET0.Pz()+jets[index2].Pz());
 			Double_t jetM1MET0 = TMath::Sqrt((E1MET0*E1MET0)-(Px1MET0*Px1MET0)-(Py1MET0*Py1MET0)-(Pz1MET0*Pz1MET0));
 			JetMass1MET->Fill(jetM1MET0,weight);
-			jetMass->Fill(jetM,weight);
 			
 			//Using MET=0 in order to find a better value for Sub-leading Jet P
 			TLorentzVector mumuj1P = muon1P + muon2P + jets[index1];
