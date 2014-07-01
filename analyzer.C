@@ -287,7 +287,14 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(diGenOMass,"Dijet Mass [GeV/c^{2}","Events");
   diGenOMass->SetStats(1);
   diGenOMass->Sumw2();
-  
+  TH1F* dijetfitM = new TH1F("dijetfitM","",50,0,200);
+  setHistTitles(dijetfitM,"Dijet Mass [GeV/c^{2}]","Events");
+  dijetfitM->SetStats(1);
+  dijetfitM->Sumw2(); 
+  TH1F* near80 = new TH1F("near80","",50,0,200);
+  setHistTitles(near80,"Dijet Mass[GeV/c^{2}]","Events");
+  near80->SetStats(1);
+  near80->Sumw2(); 
 
   ///////////////////////////
   Double_t MASS_MUON = 0.105658367;    //GeV/c2
@@ -604,7 +611,18 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 		Dijet dijetTmp2 = dijetvec[l];
 		cout << "Dijet Pt: " << dijetTmp2.GetDijet().Pt() << endl;
 		cout << "Digenjet Pt: " << dijetTmp2.GetDigen().Pt() << endl;
-	  }		
+	  }
+	  double jjmass[pairs];
+	  double massdifftmp = 5000;
+	  int k = 0;
+	  for(int z=0; z<pairs; z++){
+			jjmass[z] = abs(dijetvec[z].GetDijet().M() - 80.);
+			if(jjmass[z]<massdifftmp){
+				massdifftmp = jjmass[z];
+				k = z;
+				cout << "Mass Diff: " << massdifftmp << endl;
+			}
+	  } 		
 	  cout << "New event" << endl;
 
 	  for (unsigned iJet=0; iJet < jets.size(); iJet++){
@@ -621,10 +639,12 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 	  }
 	  if (njetsel >=2){ //&& njetsel <=3){
 	    if(jets[index1].Pt()>=30 && jets[index2].Pt()>=30){
-			
+			cout << "Working" << endl;	
 			//Plot the dijet mass for the greatest dijet Pt pair
 	  		diJetOMass->Fill(dijetMax.GetDijet().M(),weight);
 			diGenOMass->Fill(dijetMax.GetDigen().M(),weight);	      
+			near80->Fill(dijetvec[k].GetDijet().M(),weight);
+			cout << "Closest to 80: " << dijetvec[k].GetDijet().M() << endl;
 
                         //Solve for 2 Jet Invariant Mass
 			Double_t E = (jets[index1].E()+jets[index2].E());
@@ -708,13 +728,6 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			CalcChi2 c(jets[index1].Pt(),jets[index2].Pt(),jets[index1].Phi(),sigmaJet1,sigmaJet2,recoCandPt,recoCandPhi);
 			Double_t loBound = jets[index1].Pt() - 5*sigmaJet1;
 			Double_t upBound = jets[index1].Pt() + 5*sigmaJet1;
-			/*
-			Double_t interval = (2*jets[index1].Pt()-20)/20;
-			for(int j=0;j<20;j++){
-			  float ptTempj = j*interval + 20;
-			  cout << "    Jet Pt:" << ptTempj << "    " << c(ptTempj)<< endl;
-			}
-			*/
 			ROOT::Math::Functor1D cFunctor(&c,"CalcChi2","operator()");
 			ROOT::Math::GSLMinimizer1D minChi2(ROOT::Math::Minim1D::kGOLDENSECTION);
 			if(loBound >= 10){
@@ -746,6 +759,35 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			Double_t jjfitPz = (j1fit.Pz() + j2fit.Pz());
 			Double_t jjfitMass = TMath::Sqrt(jjfitE*jjfitE - jjfitPx*jjfitPx - jjfitPy*jjfitPy - jjfitPz*jjfitPz);
 			jjfitM->Fill(jjfitMass,weight);
+
+		
+			//Select Jet Pt values using chi squared minimization 
+			Double_t sigmaDiJet1 = sigma(dijetvec[0].GetJet1().Pt(),dijetvec[0].GetGen1().Pt());
+			Double_t sigmaDiJet2 = sigma(dijetvec[0].GetJet2().Pt(),dijetvec[0].GetGen2().Pt());
+			CalcChi2 dij(dijetvec[0].GetJet1().Pt(),dijetvec[0].GetJet2().Pt(),dijetvec[0].GetJet1().Phi(),sigmaDiJet1,sigmaDiJet2,recoCandPt,recoCandPhi);
+			Double_t dijloBound = dijetvec[0].GetJet1().Pt() - 5*sigmaDiJet1;
+			Double_t dijupBound = dijetvec[0].GetJet1().Pt() + 5*sigmaDiJet1;
+			ROOT::Math::Functor1D dijFunctor(&dij,"CalcChi2","operator()");
+			ROOT::Math::GSLMinimizer1D dijminChi2(ROOT::Math::Minim1D::kGOLDENSECTION);
+			if(loBound >= 10){
+			  dijminChi2.SetFunction(dijFunctor,dijetvec[0].GetJet1().Pt(),dijloBound,dijupBound);
+			}
+			else{
+			  dijminChi2.SetFunction(dijFunctor,dijetvec[0].GetJet1().Pt(),10,dijupBound);
+			}
+			dijminChi2.Minimize(100,0.01,0.01);
+			/*
+			cout << "Measured: " << jets[index1].Pt() << endl;
+			cout << "Found minimum: x = " << minChi2.XMinimum() << " f(x) = " << minChi2.FValMinimum() << " Status: " << minChi2.Status() << endl;
+			*/
+			Double_t dijet1FitPt = dijminChi2.XMinimum();
+			Double_t dijet2FitPt = calcPtJet2(dijminChi2.XMinimum(),dijetvec[0].GetJet1().Phi(),recoCandPt,recoCandPhi);
+
+			//Calculate invariant mass using jet Fit values
+			TLorentzVector dij1fit = dijetvec[0].GetJet1()*(dijet1FitPt/dijetvec[0].GetJet1().Pt());
+			TLorentzVector dij2fit = dijetvec[0].GetJet2()*(dijet2FitPt/dijetvec[0].GetJet2().Pt());
+			TLorentzVector dijetfit = dij1fit +dij2fit;	
+			dijetfitM->Fill(dijetfit.M(),weight);
 
 			
 			//Jet Pt and Gen Jet Pt comparison
@@ -898,4 +940,6 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   genJMass->Write();
   diJetOMass->Write();
   diGenOMass->Write();
+  dijetfitM->Write();
+  near80->Write();
 }
