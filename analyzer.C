@@ -39,7 +39,43 @@ Double_t calcPtJet2(Double_t ptJet1, Double_t phiJet1, Double_t dimuonPt, Double
 	Double_t pyJet2 = ptJet1*(TMath::Sin(phiJet1)) + dimuonPt*(TMath::Sin(dimuonPhi));
 	Double_t ptJet2 = TMath::Sqrt(pxJet2*pxJet2 + pyJet2*pyJet2);
 	return ptJet2;
-}	
+}
+
+	
+class Digenjet{
+	private:
+		TLorentzVector gen1_;
+		TLorentzVector gen2_;
+		TLorentzVector digen_;
+	public:
+		Digenjet();
+		Digenjet(TLorentzVector gen1, TLorentzVector gen2);
+		TLorentzVector GetGen1() const;
+		TLorentzVector GetGen2() const;
+		TLorentzVector GetDigen() const;
+};
+
+Digenjet::Digenjet(){
+}
+
+Digenjet::Digenjet(TLorentzVector gen1, TLorentzVector gen2):gen1_(gen1), gen2_(gen2), digen_(gen1+gen2){
+}
+
+TLorentzVector Digenjet::GetGen1() const {
+	return gen1_;
+}
+
+TLorentzVector Digenjet::GetGen2() const {
+	return gen2_;
+}
+
+TLorentzVector Digenjet::GetDigen() const {
+	return digen_;
+}
+
+bool GenwayToSort(const Digenjet &dj1, const Digenjet &dj2){
+	return dj1.GetDigen().Pt() > dj2.GetDigen().Pt();
+}
 
 class Dijet{
 	private:
@@ -578,16 +614,17 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
     
     int countgj2 = 0;
     
-    for(unsigned iJet=0; (iJet < unsigned(rawJets.nJets) && iJet < 10); iJet++){
-	if(genJets2[iJet].Pt() > 30 && genJets2[iJet].Eta() < 4.7){
-		countgj2++;
-	}
+    for(std::vector<TLorentzVector>::const_iterator genJet = genJets2.begin(); genJet != genJets2.end(); genJet++)
+    {
+      cout << "Pt Value for gen2 " << genJet->Pt() << endl;
+      countgj2++;
     }
-/*	
+
+	
     genJet2n->Fill(countgj2,weight);
 		
     ngenJet2->Fill(genJets2.size(),weight);
-*/
+
 //    /////////////////////////////////////////////
 //
 //    cout << "Event: "<< eventInfo.run << ":" << eventInfo.event << endl;
@@ -674,38 +711,37 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			}
 	  } 		
 	  cout << "New event" << endl;
-/*
+
 	  // create dijet Pt Pairs
-	  int njets2 = jets.size();
-	  std::vector<Dijet> dijetvec2;
+	  int njets2 = genJets2.size();
+	  std::vector<Digenjet> digenjetvec;
 
 	if(njets2 >= 2){
 	  for(int d=0; d<njets2; d++){
 		for(int jk=0; jk<njets2; jk++){
 			if(d<jk){
-                                Dijet dijetTmp = Dijet(jets[d],jets[jk],genJets2[d],genJets2[jk]);
-				dijetvec.push_back(dijetTmp);
+                                Digenjet dijetTmp = Digenjet(genJets2[d],genJets2[jk]);
+				digenjetvec.push_back(dijetTmp);
 				//cout << "Dijet Pt: " << dijetTmp.GetDijet().Pt() << endl;
 			}
 		}
 	  }
 	}
-	  std::sort(dijetvec2.begin(),dijetvec2.end(),wayToSort);
-	  Dijet dijetMax2;
+	  std::sort(digenjetvec.begin(),digenjetvec.end(),GenwayToSort);
+	  Digenjet digenjetMax;
 	  int pairs2 = (njets2*njets2 - njets2)/2;
 	  for(int l=0; l<pairs2; l++){
 			if(l == 0){
-				dijetMax = dijetvec2[l];
+				digenjetMax = digenjetvec[l];
 			}
-		Dijet dijetTmp2 = dijetvec2[l];
-		cout << "Dijet Pt: " << dijetTmp2.GetDijet().Pt() << endl;
-		cout << "Digenjet Pt: " << dijetTmp2.GetDigen().Pt() << endl;
+		Digenjet digenjetTmp = digenjetvec[l];
+		cout << "Digenjet Pt: " << digenjetTmp.GetDigen().Pt() << endl;
 	  }
 	  double jjmass2[pairs2];
 	  double massdifftmp2 = 5000;
 	  int k2 = 0;
 	  for(int z=0; z<pairs2; z++){
-			jjmass2[z] = abs(dijetvec2[z].GetDijet().M() - 80.);
+			jjmass2[z] = abs(digenjetvec[z].GetDigen().M() - 80.);
 			if(jjmass2[z]<massdifftmp2){
 				massdifftmp2 = jjmass2[z];
 				k2 = z;
@@ -714,7 +750,6 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 	  } 		
 	  cout << "New event" << endl;
 
-	*/
 
 	  for (unsigned iJet=0; iJet < jets.size(); iJet++){
 		if (jets[iJet].Pt() > 20){
