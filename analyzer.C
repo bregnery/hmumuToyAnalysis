@@ -41,7 +41,7 @@ Double_t calcPtJet2(Double_t ptJet1, Double_t phiJet1, Double_t dimuonPt, Double
 	return ptJet2;
 }
 
-	
+// This class was created to store generator jet information	
 class Digenjet{
 	private:
 		TLorentzVector gen1_;
@@ -77,6 +77,8 @@ bool GenwayToSort(const Digenjet &dj1, const Digenjet &dj2){
 	return dj1.GetDigen().Pt() > dj2.GetDigen().Pt();
 }
 
+
+// This class was created to store jet information
 class Dijet{
 	private:
 		TLorentzVector jet1_;
@@ -131,8 +133,13 @@ bool wayToSort(const Dijet &dj1, const Dijet &dj2){
 }
 
 		
+bool LorentzwayToSort(const TLorentzVector &dj1, const TLorentzVector &dj2){
+	return dj1.Pt() > dj2.Pt();
+}
 		
-
+// This class was created to store generator jet information
+// 	for a maximum likelihood fit to improve jet selection
+// 	for the VH production mode	
 class CalcChi2{
 	private:
 		const Double_t ptJet1_;
@@ -145,8 +152,10 @@ class CalcChi2{
 	public:
 		CalcChi2();
 		CalcChi2(Double_t ptJet1, Double_t ptJet2, Double_t phiJet1, Double_t sigmaJet1, Double_t sigmaJet2, Double_t dimuonPt, Double_t dimuonPhi);
-  Double_t operator()(double ptJet1Param);
+  		Double_t operator()(double ptJet1Param);
 };
+
+
 
 CalcChi2::CalcChi2():ptJet1_(0), ptJet2_(0), phiJet1_(0), sigmaJet1_(0), sigmaJet2_(0), dimuonPt_(0), dimuonPhi_(0){
 
@@ -181,104 +190,163 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 
   setStyle();
 
+  // Plots Mass of the Dimuons
   TH1F* dimuonMassHist = new TH1F("dimuonMass","",50,110,160);
   setHistTitles(dimuonMassHist,"M(#mu#mu) [GeV/c^{2}]","Events");
   dimuonMassHist->Sumw2();
+
+  // Plots the number of Jets
   TH1F* nJetsHist = new TH1F("nJets","",10,0,10);
   setHistTitles(nJetsHist,"N_{Jets}","Events");
   nJetsHist->SetStats(1);
   nJetsHist->Sumw2();
-  TH1F* recoPtHist = new TH1F("recoPt","",100,0,100); // adding a histogram for reco pt
+
+  // Plots reconstructed Jet pt
+  TH1F* recoPtHist = new TH1F("recoPt","",100,0,100);
   setHistTitles(recoPtHist,"pt","Events");
   recoPtHist->Sumw2();
-  TH1F* recoEtaHist = new TH1F("recoEta","",100,0,2.5); // adding a histogram for reco eta
+
+  // Plots reconstructed Jet eta
+  TH1F* recoEtaHist = new TH1F("recoEta","",100,0,2.5);
   setHistTitles(recoEtaHist,"Eta","Events");
   recoEtaHist->Sumw2();
+
+  // Plots reconstructed Jet Et
   TH1F* nJetsEtHist = new TH1F("nJetsEtHist","",100,0,100);
   setHistTitles(nJetsEtHist,"et","Events");
   nJetsEtHist->Sumw2();
-  TH1F* jetMass = new TH1F("jetMass","",50,0,200);// 2 jet mass after the cuts
+
+  // Plots invariant Dijet Mass
+  TH1F* jetMass = new TH1F("jetMass","",50,0,200);
   setHistTitles(jetMass,"M(2Jet) [GeV/c^{2}]","Events");
   jetMass->SetStats(1);
   jetMass->Sumw2();
-  TH1F* jetEta = new TH1F("jetEta","",10,0,10); //histogram for jet eta
+
+  // Plots jet eta
+  TH1F* jetEta = new TH1F("jetEta","",10,0,10);
   setHistTitles(jetEta,"Eta","Events");
   jetEta->Sumw2();
-  TH1F* H2JetPhi = new TH1F("MuMu2JetPhi","",10,-1,-0.9); // histogram for the angle between the Higgs and the jets created
+
+  // Plots the cosine of the angle between the predicted Higgs
+  // and vector boson paths
+  TH1F* H2JetPhi = new TH1F("MuMu2JetPhi","",10,-1,-0.9);
   setHistTitles(H2JetPhi,"cos(Phi)","Events");
   H2JetPhi->SetStats(1);
   H2JetPhi->Sumw2();
+
+  // Plots the Dimuon Pt
   TH1F* DiMuonPt = new TH1F("DiMuonPt","",20,0,200);
   setHistTitles(DiMuonPt,"Pt(DiMuon) [GeV/c]","Events");
   DiMuonPt->SetStats(1);
   DiMuonPt->Sumw2();
+
+  // Plots the absolute value of the Missing pt
   TH1F* PtMiss = new TH1F("PtMiss","",100,0,200);
   setHistTitles(PtMiss,"Pt(miss) [GeV/c]","Events");
   PtMiss->SetStats(1);
   PtMiss->Sumw2();
+
+  // Plots the dijet rapidity
   TH1F* DijetRep = new TH1F("DijetRep","",14,-7,7);
   setHistTitles(DijetRep,"Dijet Rapidity","Events");
   DijetRep->SetStats(1);
   DijetRep->Sumw2();
+
+  // Plots the dimuon rapidity
   TH1F* DiMuRap = new TH1F("DiMuRap","",10,-5,5);
   setHistTitles(DiMuRap,"Dimuon Rapidity","Events");
   DiMuRap->SetStats(1);
   DiMuRap->Sumw2();
+
+  // Plots the altered value of the leading pt jet using the method that
+  // the Missing Et =0
   TH1F* P1MET0histo = new TH1F("P1MET0histo","",50,0,300);
   setHistTitles(P1MET0histo,"Jet 1 Pt from MET=0 [GeV/c]","Events");
   P1MET0histo->SetStats(1);
   P1MET0histo->Sumw2();
+
+  // Plots the leading jet Pt
   TH1F* Jet1P = new TH1F("Jet1P","",50,0,300);
   setHistTitles(Jet1P,"Jet 1 Pt measured [GeV/c]","Events");
   Jet1P->SetStats(1);
   Jet1P->Sumw2();
+
+  // Plots the invariant dijet mass when the leading jet is found from
+  // the method that missing Et = 0
   TH1F* JetMass1MET = new TH1F("JetMass1MET","",50,0,200);
   setHistTitles(JetMass1MET,"2 Jet invariant mass with Jet 1 from MET=0 [GeV/c^2]","Events");
   JetMass1MET->SetStats(1);
   JetMass1MET->Sumw2();
+
+  // Plots the subleading jet Pt using the method that missing Et = 0
   TH1F* P2MET0histo = new TH1F("P2MET0histo","",50,0,300);
   setHistTitles(P2MET0histo,"Jet 2 Pt from MET=0 [GeV/c]","Events");
   P2MET0histo->SetStats(1);
   P2MET0histo->Sumw2();
+
+  // Plots the subleading jet Pt
   TH1F* Jet2P = new TH1F("Jet2P","",50,0,300);
   setHistTitles(Jet2P,"Jet 2 Pt measured [GeV/c]","Events");
   Jet2P->SetStats(1);
   Jet2P->Sumw2();
+
+  // Plots the invariant dijet mass when the subleading jet is obtained
+  // from the method that missing Et = 0
   TH1F* JetMass2MET = new TH1F("JetMass2MET","",50,0,200);
   setHistTitles(JetMass2MET,"2 Jet invariant mass with Jet 2 from MET=0 [GeV/c^{2}]","Events");
   JetMass2MET->SetStats(1);
   JetMass2MET->Sumw2();
+
+  // Plots the invariant dijet mass that has a closest value to 85 
+  // (the "best" pair when there are more than 2 jets)
+  // this selection is only for testing, it messes with statistics
   TH1F* JetMass85MET = new TH1F("JetMass85MET","",50,0,200);
   setHistTitles(JetMass85MET,"2 Jet invariant mass with mass value closest to 85 [GeV/c^{2}]","Events");
   JetMass85MET->SetStats(1);
   JetMass85MET->Sumw2();
+
+  // Plots the difference between Dimuon and Dijet Pt
   TH1F* jjmmPtDiff = new TH1F("jjmmPtDiff","",50,-200,200);
   setHistTitles(jjmmPtDiff,"The Differece of Dimuon Pt and DijetPt [GeV/c]","Events");
   jjmmPtDiff->SetStats(1);
   jjmmPtDiff->Sumw2();
+
+  // Plots the difference between the measured and maximum liklihood fitted dimuon pt
   TH2F* DiffDimuPt = new TH2F("DiffDimuPt","",50,-200,200,50,0,200);
   DiffDimuPt->SetStats(1);
   DiffDimuPt->Sumw2();
+
+  // Plots the difference between reconstructed and maximum liklihood fitted leading jet Pt
   TH1F* DiffMF = new TH1F("DiffMF","",50,-200,200);
   setHistTitles(DiffMF,"The Difference of Measured and fitted Pt [GeV/c]","Events");
   DiffMF->SetStats(1);
   DiffMF->Sumw2();
+
+  // Plots the difference between reconstructed and maximum liklihood fitted subleading jet Pt
   TH1F* DiffMF2 = new TH1F("DiffMF2","",50,-200,200);
   setHistTitles(DiffMF2,"The Difference for Jet 2 in Pt [GeV/c]","Events");
   DiffMF2->SetStats(1);
   DiffMF2->Sumw2();
+
+  // Plots the maximum liklihood fitted leading jet Pt
   TH1F* j1fitPt = new TH1F("j1fitPt","",50,0,200);
   setHistTitles(j1fitPt,"Jet 1 fitted Pt [GeV/c]","Events");
   j1fitPt->SetStats(1);
   j1fitPt->Sumw2();
+
+  // Plots the maximum liklihood fitted subleading jet Pt
   TH1F* j2fitPt = new TH1F("j2fitPt","",50,0,200);
   setHistTitles(j2fitPt,"Jet 2 fitted Pt [GeV/c]","Events");
   j2fitPt->SetStats(1);
   j2fitPt->Sumw2();
+
+  // Plots the maximum liklihood fitted invariant dijet mass
   TH1F* jjfitM = new TH1F("jjfitM","",50,0,200);
   setHistTitles(jjfitM,"Fitted Dijet Mass [GeV/c^{2}]","Events");
   jjfitM->SetStats(1);
   jjfitM->Sumw2();
+
+ 
   TH1F* jetP38 = new TH1F("jetP38","",3,30,80);
   setHistTitles(jetP38,"Jet Pt [GeV/c]","Events");
   jetP38->SetStats(1);
@@ -311,6 +379,8 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(jetE183,"Jet Pt [GeV/c]","Events");
   jetE183->SetStats(1);
   jetE183->Sumw2();
+
+  // Plots the invariant mass determined from the generator jets
   TH1F* genJMass = new TH1F("genJMass","",50,0,200);
   setHistTitles(genJMass,"Dijet Mass [GeV/c^{2}]","Events");
   genJMass->SetStats(1);
@@ -351,6 +421,18 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(genJet2n,"number of Jets","Events");
   genJet2n->SetStats(1);
   genJet2n->Sumw2();
+  TH1F* gen2pairMass = new TH1F("gen2pairMass","",50,0,200);
+  setHistTitles(gen2pairMass,"Mass[GeV/c^{2}]","Events");
+  gen2pairMass->SetStats(1);
+  gen2pairMass->Sumw2();
+  TH1F* gen2n80Mass = new TH1F("gen2n80Mass","",50,0,200);
+  setHistTitles(gen2n80Mass,"Mass[GeV/c^{2}]","Events");
+  gen2n80Mass->SetStats(1);
+  gen2n80Mass->Sumw2();
+  TH1F* gen2Mass = new TH1F("gen2Mass","",50,0,200);
+  setHistTitles(gen2Mass,"Mass[GeV/c^{2}]","Events");
+  gen2Mass->SetStats(1);
+  gen2Mass->Sumw2();
 
   ///////////////////////////
   Double_t MASS_MUON = 0.105658367;    //GeV/c2
@@ -553,7 +635,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
     bool muon2PassIso = (getPFRelIso(reco2) <= 0.12);
     if ( !(muon1PassIso && muon2PassIso))
         continue;
-// Order muons by pt
+    // Order muons by pt
     if (reco1.pt < reco2.pt)
     {
       _MuonInfo tmpMuon = reco1;
@@ -567,7 +649,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
     {
       weight *= lumiWeights.weight(nPU);
     }
-    //DiMuonPt->Fill(recoCandPt,weight);
+    DiMuonPt->Fill(recoCandPt);
 
 	GenWMass->Fill(genWpreFSR.mass,weight);
 	GenM1->Fill(reco2GenPostFSR.pt,weight);
@@ -578,7 +660,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
     std::vector<TLorentzVector> jets;
 
 	std::vector<TLorentzVector> genJets;
-    const float jetPtCut = 25.;
+    const float jetPtCut = 30.0;
     const float jetAbsEtaCut = 2.7;
    
     const int jetPUIDCut = 4; // >=    tight = 7, medium = 6, loose = 4. Only loose is useful!!
@@ -600,11 +682,11 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
         genJets.push_back(tmpGenJetVec);
       }
     }
-
+   
     std::vector<TLorentzVector> genJets2;
     for(unsigned iJet=0; (iJet < unsigned(rawJets.nJets) && iJet < 10);iJet++)
     {
-      if (rawJets.genPt[iJet]>0.0)
+      if (rawJets.genPt[iJet]>20.0 && TMath::Abs(rawJets.genEta[iJet]) < 2.7)
       {
         TLorentzVector tmpGenJetVec;
         tmpGenJetVec.SetPtEtaPhiM(rawJets.genPt[iJet],rawJets.genEta[iJet],rawJets.genPhi[iJet],rawJets.genMass[iJet]);
@@ -616,10 +698,11 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
     
     for(std::vector<TLorentzVector>::const_iterator genJet = genJets2.begin(); genJet != genJets2.end(); genJet++)
     {
-      cout << "Pt Value for gen2 " << genJet->Pt() << endl;
+      //cout << "Pt Value for gen2 " << genJet->Pt() << endl;
       countgj2++;
     }
 
+    std::sort(genJets2.begin(),genJets2.end(),LorentzwayToSort);
 	
     genJet2n->Fill(countgj2,weight);
 		
@@ -673,14 +756,14 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 
 
 
-	  // create dijet Pt pairsj
+	  // create dijet Pt pairs
 	  int njets = jets.size();
 	  std::vector<Dijet> dijetvec;
 
 	if(njets >= 2){
 	  for(int d=0; d<njets; d++){
-		for(int k=0; k<njets; k++){
-			if(d<k){
+		for(int k=d; k<njets; k++){
+			if(d != k){
                                 Dijet dijetTmp = Dijet(jets[d],jets[k],genJets[d],genJets[k]);
 				dijetvec.push_back(dijetTmp);
 				//cout << "Dijet Pt: " << dijetTmp.GetDijet().Pt() << endl;
@@ -696,8 +779,8 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 				dijetMax = dijetvec[l];
 			}
 		Dijet dijetTmp2 = dijetvec[l];
-		cout << "Dijet Pt: " << dijetTmp2.GetDijet().Pt() << endl;
-		cout << "Digenjet Pt: " << dijetTmp2.GetDigen().Pt() << endl;
+		//cout << "Dijet Pt: " << dijetTmp2.GetDijet().Pt() << endl;
+		//cout << "Digenjet Pt: " << dijetTmp2.GetDigen().Pt() << endl;
 	  }
 	  double jjmass[pairs];
 	  double massdifftmp = 5000;
@@ -707,27 +790,32 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			if(jjmass[z]<massdifftmp){
 				massdifftmp = jjmass[z];
 				k = z;
-				cout << "Mass Diff: " << massdifftmp << endl;
+				//cout << "Mass Diff: " << massdifftmp << endl;
 			}
 	  } 		
-	  cout << "New event" << endl;
-
+	  //cout << "New event" << endl;
+	
+	
 	  // create dijet Pt Pairs
 	  int njets2 = genJets2.size();
 	  std::vector<Digenjet> digenjetvec;
-
+	
 	if(njets2 >= 2){
-	  for(int d=0; d<njets2; d++){
-		for(int jk=0; jk<njets2; jk++){
-			if(d<jk){
-                                Digenjet dijetTmp = Digenjet(genJets2[d],genJets2[jk]);
+	  
+          for(std::vector<TLorentzVector>::const_iterator d = genJets2.begin(); d != genJets2.end(); d++){
+		//cout << "d jet Pt: " << d->Pt() << endl;
+    		for(std::vector<TLorentzVector>::const_iterator jk = d; jk != genJets2.end(); jk++){
+			if (d != jk) {
+				//cout << "jk jet Pt: " << jk->Pt() << endl;
+                                Digenjet dijetTmp = Digenjet(*d,*jk);
 				digenjetvec.push_back(dijetTmp);
-				//cout << "Dijet Pt: " << dijetTmp.GetDijet().Pt() << endl;
+				////cout << "Dijet Pt: " << dijetTmp.GetDijet().Pt() << endl;
 			}
 		}
 	  }
 	}
 	  std::sort(digenjetvec.begin(),digenjetvec.end(),GenwayToSort);
+	  
 	  Digenjet digenjetMax;
 	  int pairs2 = (njets2*njets2 - njets2)/2;
 	  for(int l=0; l<pairs2; l++){
@@ -735,7 +823,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 				digenjetMax = digenjetvec[l];
 			}
 		Digenjet digenjetTmp = digenjetvec[l];
-		cout << "Digenjet Pt: " << digenjetTmp.GetDigen().Pt() << endl;
+		//cout << "Digenjet Pt: " << digenjetTmp.GetDigen().Pt() << endl;
 	  }
 	  double jjmass2[pairs2];
 	  double massdifftmp2 = 5000;
@@ -745,11 +833,10 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			if(jjmass2[z]<massdifftmp2){
 				massdifftmp2 = jjmass2[z];
 				k2 = z;
-				cout << "Mass Diff: " << massdifftmp2 << endl;
+				//cout << "Mass Diff: " << massdifftmp2 << endl;
 			}
 	  } 		
-	  cout << "New event" << endl;
-
+	  //cout << "New event" << endl;
 
 	  for (unsigned iJet=0; iJet < jets.size(); iJet++){
 		if (jets[iJet].Pt() > 20){
@@ -763,15 +850,43 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			}
 		}
 	  }
+	
+	if(jets.size() >= 2){
+		TLorentzVector JetsMass = jets[index1] + jets[index2];
+		jetMass->Fill(JetsMass.M());
+	}
+	
+	
+	if(digenjetvec.size() > 0){
+		gen2pairMass->Fill(digenjetvec[0].GetDigen().M());
+		//cout << "Fill high pair" << endl;
+        }
+	if(digenjetvec.size() > 0){ 
+		gen2n80Mass->Fill(digenjetvec[k2].GetDigen().M());
+		//cout << "Fill 80 pair" << endl;
+	}
+	
+	// Gen 2 invariant Mass
+	if(genJets2.size() >= 2){
+		TLorentzVector digen2 = genJets2[0] + genJets2[1];
+		gen2Mass->Fill(digen2.M());
+		//cout << "Fill highest" << endl;
+	}
+
+	
+	if(dijetvec.size() > 0) diJetOMass->Fill(dijetMax.GetDijet().M());	      
+	if(dijetvec.size() > 0) near80->Fill(dijetvec[k].GetDijet().M());
+
+
 	  if (njetsel >=2){ //&& njetsel <=3){
 	    if(jets[index1].Pt()>=30 && jets[index2].Pt()>=30){
-			cout << "Working" << endl;	
+			//cout << "Working" << endl;	
 			//Plot the dijet mass for the greatest dijet Pt pair
-	  		diJetOMass->Fill(dijetMax.GetDijet().M(),weight);
+	  		//diJetOMass->Fill(dijetMax.GetDijet().M(),weight);
 			diGenOMass->Fill(dijetMax.GetDigen().M(),weight);	      
-			near80->Fill(dijetvec[k].GetDijet().M(),weight);
-			cout << "Closest to 80: " << dijetvec[k].GetDijet().M() << endl;
-
+			//near80->Fill(dijetvec[k].GetDijet().M(),weight);
+			//cout << "Closest to 80: " << dijetvec[k].GetDijet().M() << endl;
+			
                         //Solve for 2 Jet Invariant Mass
 			Double_t E = (jets[index1].E()+jets[index2].E());
 			Double_t Px = (jets[index1].Px()+jets[index2].Px());
@@ -779,7 +894,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			Double_t Pz = (jets[index1].Pz()+jets[index2].Pz());
 			jetM = TMath::Sqrt((E*E)-(Px*Px)-(Py*Py)-(Pz*Pz));
 			//cout << "Jet Mass Comp: " << jetM;
-			jetMass->Fill(jetM,weight);
+			//jetMass->Fill(jetM,weight);
 	
 			//TLorentzVector DIjet = jets[index1] + jets[index2];
 			//cout << "Jet Mass Dijet: " << DIjet.M() << endl;
@@ -974,7 +1089,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			//cout << "Jet 2 Pt MET0: " << jet2PMET0.Pt() << endl;
 			 
 			if(jetM >= 60 && jetM <= 110){
-			  DiMuonPt->Fill(recoCandPt,weight);
+			 // DiMuonPt->Fill(recoCandPt,weight);
 			  //jetMass->Fill(jetM,weight);
 			  //if(cosPhi <= -0.95){
 			    //jetMass->Fill(jetM,weight);
@@ -1022,13 +1137,13 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   nJetsEtHist->Write();
   jetMass->Write();
   float nbins = jetMass->GetNbinsX();
-  for(int i=0; i<= nbins + 1; i++){
+  for(int i=15; i<= 28; i++){
     //cout << "Bin Number:" << jetMass->GetBin(i) << "Bin Content: " << jetMass->GetBinContent(i) << endl;
     JetMassBin = JetMassBin + jetMass->GetBinContent(i);
   }
   //cout << "Overflow: " << jetMass->GetBinContent(nbins+1) << endl;
   //cout << "Underflow: " << jetMass->GetBinContent(0) << endl;
-  cout << "Events after 2 jet selection and 2 jet invariant mass cut: " << JetMassBin << endl;
+  cout << "Reco Highest Pt events: " << JetMassBin << endl;
   //cout << "integral: " << jetMass->Integral() << endl;
   jetEta->Write();
   H2JetPhi->Write();
@@ -1065,11 +1180,44 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   jetE183->Write();
   genJMass->Write();
   diJetOMass->Write();
+  float omassBin = 0;
+  for(int i = 15; i<=28; i++){
+  	omassBin = omassBin + diJetOMass->GetBinContent(i);
+  }
+  cout << "Reco Pt pair Events: " << omassBin << endl;
   diGenOMass->Write();
   dijetfitM->Write();
   near80->Write();
+  float nearBin = 0;
+  for(int i = 15; i<=28; i++){
+  	nearBin = nearBin + near80->GetBinContent(i);
+  }
+  cout << "Reco near 80 Events: " << nearBin << endl;
   GenWMass->Write();
   GenM1->Write();
   GenM2->Write();
   ngenJet2->Write();
+  gen2pairMass->Write();
+  float gen2pairBin = 0;
+  for(int i=15; i<=28; i++){
+	gen2pairBin = gen2pairBin + gen2pairMass->GetBinContent(i);
+  }
+  cout << "Highest Pt Pair Events: " << gen2pairBin << endl;
+  gen2n80Mass->Write();
+  float gen2nBin = 0;
+  for (int i= 15; i<= 28; i++){
+	gen2nBin = gen2nBin + gen2n80Mass->GetBinContent(i);
+  }
+  cout << "Pair Mass close to 80 Events: " << gen2nBin << endl;
+  gen2Mass->Write();
+  float gen2Bin = 0;
+  for(int i = 15; i<= 28; i++){
+	gen2Bin = gen2Bin + gen2Mass->GetBinContent(i);
+  }
+  cout << "Lead and Sublead Events: " << gen2Bin << endl;
+  //float gen2BinTot = 0;
+  //for(int i=0; i<=50;i++){
+  //	gen2BinTot = gen2BinTot + gen2Mass->GetBinContent(i);
+  //}
+  //cout << "Highest Pt jets: " << gen2BinTot << endl;
 }
