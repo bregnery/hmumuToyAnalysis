@@ -311,11 +311,12 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   jjmmPtDiff->SetStats(1);
   jjmmPtDiff->Sumw2();
 
-  // Plots the difference between the measured and maximum liklihood fitted dimuon pt
+  // Plots the difference between 
   TH2F* DiffDimuPt = new TH2F("DiffDimuPt","",50,-200,200,50,0,200);
   DiffDimuPt->SetStats(1);
   DiffDimuPt->Sumw2();
 
+/*
   // Plots the difference between reconstructed and maximum liklihood fitted leading jet Pt
   TH1F* DiffMF = new TH1F("DiffMF","",50,-200,200);
   setHistTitles(DiffMF,"The Difference of Measured and fitted Pt [GeV/c]","Events");
@@ -345,7 +346,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(jjfitM,"Fitted Dijet Mass [GeV/c^{2}]","Events");
   jjfitM->SetStats(1);
   jjfitM->Sumw2();
-
+*/
  
   TH1F* jetP38 = new TH1F("jetP38","",3,30,80);
   setHistTitles(jetP38,"Jet Pt [GeV/c]","Events");
@@ -393,10 +394,14 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   setHistTitles(diGenOMass,"Dijet Mass [GeV/c^{2}","Events");
   diGenOMass->SetStats(1);
   diGenOMass->Sumw2();
+
+/*
   TH1F* dijetfitM = new TH1F("dijetfitM","",50,0,200);
   setHistTitles(dijetfitM,"Dijet Mass [GeV/c^{2}]","Events");
   dijetfitM->SetStats(1);
   dijetfitM->Sumw2(); 
+*/  
+
   TH1F* near80 = new TH1F("near80","",50,0,200);
   setHistTitles(near80,"Dijet Mass[GeV/c^{2}]","Events");
   near80->SetStats(1);
@@ -457,14 +462,14 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 
   // These are the dimuon mass, pt, rapidity, and phi
   float recoCandMass, recoCandPt, recoCandY, recoCandPhi;
-  float recoCandMassRes, recoCandMassResCov;
+  //float recoCandMassRes, recoCandMassResCov;
 
   tree->SetBranchAddress("recoCandMass",       &recoCandMass);
   tree->SetBranchAddress("recoCandPt",         &recoCandPt);
   tree->SetBranchAddress("recoCandY",          &recoCandY);
   tree->SetBranchAddress("recoCandPhi",        &recoCandPhi);
-  tree->SetBranchAddress("recoCandMassRes",    &recoCandMassRes);
-  tree->SetBranchAddress("recoCandMassResCov", &recoCandMassResCov);
+  //tree->SetBranchAddress("recoCandMassRes",    &recoCandMassRes);
+  //tree->SetBranchAddress("recoCandMassResCov", &recoCandMassResCov);
 
   // MC truth info
   float trueMass=-99999.0;
@@ -491,21 +496,21 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   _PFJetInfo rawJets;
   tree->SetBranchAddress("pfJets",&rawJets);
 
-  float puJetFullDisc[10];
-  float puJetSimpleDisc[10];
-  float puJetCutDisc[10];
+  //float puJetFullDisc[10];
+  //float puJetSimpleDisc[10];
+  //float puJetCutDisc[10];
 
-  tree->SetBranchAddress("puJetFullDisc",&puJetFullDisc);
-  tree->SetBranchAddress("puJetSimpleDisc",&puJetSimpleDisc);
-  tree->SetBranchAddress("puJetCutDisc",&puJetCutDisc);
+  //tree->SetBranchAddress("puJetFullDisc",&puJetFullDisc);
+  //tree->SetBranchAddress("puJetSimpleDisc",&puJetSimpleDisc);
+  //tree->SetBranchAddress("puJetCutDisc",&puJetCutDisc);
 
-  float puJetFullId[10];
-  float puJetSimpleId[10];
-  float puJetCutId[10];
+  //float puJetFullId[10];
+  //float puJetSimpleId[10];
+  //float puJetCutId[10];
 
-  tree->SetBranchAddress("puJetFullId",&puJetFullId);
-  tree->SetBranchAddress("puJetSimpleId",&puJetSimpleId);
-  tree->SetBranchAddress("puJetCutId",&puJetCutId);
+  //tree->SetBranchAddress("puJetFullId",&puJetFullId);
+  //tree->SetBranchAddress("puJetSimpleId",&puJetSimpleId);
+  //tree->SetBranchAddress("puJetCutId",&puJetCutId);
 
   int nPU=0;
   if (!isData)
@@ -663,7 +668,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
     const float jetPtCut = 30.0;
     const float jetAbsEtaCut = 2.7;
    
-    const int jetPUIDCut = 4; // >=    tight = 7, medium = 6, loose = 4. Only loose is useful!!
+    //const int jetPUIDCut = 4; // >=    tight = 7, medium = 6, loose = 4. Only loose is useful!!
     for(unsigned iJet=0; (iJet < unsigned(rawJets.nJets) && iJet < 10);iJet++)
     {
       // apply jet energy resolution corrections
@@ -671,8 +676,8 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
         rawJets.pt[iJet] = jerCorr(rawJets.pt[iJet],rawJets.genPt[iJet],rawJets.eta[iJet]); 
       bool goodPt = rawJets.pt[iJet]>jetPtCut;
       bool goodEta = fabs(rawJets.eta[iJet])<jetAbsEtaCut;
-      bool goodPUID = puJetFullId[iJet] >= jetPUIDCut;
-      if (goodPt && goodEta && goodPUID)
+      //bool goodPUID = puJetFullId[iJet] >= jetPUIDCut;
+      if (goodPt && goodEta)// && goodPUID)
       {
         TLorentzVector tmpJetVec;
         tmpJetVec.SetPtEtaPhiM(rawJets.pt[iJet],rawJets.eta[iJet],rawJets.phi[iJet],rawJets.mass[iJet]);
@@ -962,7 +967,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			else if(jetM1MET0 < jetM2MET0 && jetM2MET0 <= 85){
 				JetMass85MET->Fill(jetM2MET0,weight);
 			}
-			
+		/*	
 			//Select Jet Pt values using chi squared minimization 
 			Double_t sigmaJet1 = sigma(jets[index1].Pt(),genJets[index1].Pt());
 			Double_t sigmaJet2 = sigma(jets[index2].Pt(),genJets[index2].Pt());
@@ -978,10 +983,10 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			  minChi2.SetFunction(cFunctor,jets[index1].Pt(),10,upBound);
 			}
 			minChi2.Minimize(100,0.01,0.01);
-			/*
-			cout << "Measured: " << jets[index1].Pt() << endl;
-			cout << "Found minimum: x = " << minChi2.XMinimum() << " f(x) = " << minChi2.FValMinimum() << " Status: " << minChi2.Status() << endl;
-			*/
+			
+			//cout << "Measured: " << jets[index1].Pt() << endl;
+			//cout << "Found minimum: x = " << minChi2.XMinimum() << " f(x) = " << minChi2.FValMinimum() << " Status: " << minChi2.Status() << endl;
+			
 			Double_t jet1FitPt = minChi2.XMinimum();
 			Double_t jet2FitPt =calcPtJet2(minChi2.XMinimum(),jets[index1].Phi(),recoCandPt,recoCandPhi);
 			Double_t DiffMeasFitJ1 = jets[index1].Pt() - jet1FitPt;
@@ -1017,10 +1022,10 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			  dijminChi2.SetFunction(dijFunctor,dijetvec[0].GetJet1().Pt(),10,dijupBound);
 			}
 			dijminChi2.Minimize(100,0.01,0.01);
-			/*
-			cout << "Measured: " << jets[index1].Pt() << endl;
-			cout << "Found minimum: x = " << minChi2.XMinimum() << " f(x) = " << minChi2.FValMinimum() << " Status: " << minChi2.Status() << endl;
-			*/
+			
+			//cout << "Measured: " << jets[index1].Pt() << endl;
+			//cout << "Found minimum: x = " << minChi2.XMinimum() << " f(x) = " << minChi2.FValMinimum() << " Status: " << minChi2.Status() << endl;
+			
 			Double_t dijet1FitPt = dijminChi2.XMinimum();
 			Double_t dijet2FitPt = calcPtJet2(dijminChi2.XMinimum(),dijetvec[0].GetJet1().Phi(),recoCandPt,recoCandPhi);
 
@@ -1029,7 +1034,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 			TLorentzVector dij2fit = dijetvec[0].GetJet2()*(dijet2FitPt/dijetvec[0].GetJet2().Pt());
 			TLorentzVector dijetfit = dij1fit +dij2fit;	
 			dijetfitM->Fill(dijetfit.M(),weight);
-
+		*/
 			
 			//Jet Pt and Gen Jet Pt comparison
 			Double_t jet1Ptdiff = (jets[index1].Pt()-genJets[index1].Pt())/genJets[index1].Pt();
@@ -1124,6 +1129,8 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
 
   TFile* outFile = new TFile(outputFileName,"RECREATE");
   outFile->cd();
+
+//write histograms
   recoPtHist->Write();
   dimuonMassHist->Write();
   DiMuonPt->Write();
@@ -1165,11 +1172,13 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   JetMass85MET->Write();
   jjmmPtDiff->Write();
   DiffDimuPt->Write();
+ /* 
   DiffMF->Write();
-  DiffMF2->Write();
+  DiffMF2->Write(); 
   j1fitPt->Write();
   j2fitPt->Write();
   jjfitM->Write();
+ */ 
   jetP38->Write();
   jetE38->Write();
   jetP812->Write();
@@ -1186,7 +1195,7 @@ void analyzer (TString inputFileName,TString outputFileName, TString runPeriod, 
   }
   cout << "Reco Pt pair Events: " << omassBin << endl;
   diGenOMass->Write();
-  dijetfitM->Write();
+  //dijetfitM->Write();
   near80->Write();
   float nearBin = 0;
   for(int i = 15; i<=28; i++){
