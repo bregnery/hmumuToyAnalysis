@@ -26,7 +26,12 @@ It does not include:
 Instructions
 ============
 
-Log on to melrose.  Create your own scratch directory: /raid/raid8/<username>, and move into it.
+Log on to one of the UF Tier 2 servers.  
+Optional: Create your own scratch directory:
+
+    cd /scratch/osg/
+    mkdir <your_directory>
+    cd <your_directory>/
 
 You will need a working copy of ROOT to analyze Ntuples.  The easiest way to get one is to create a CMSSW release, move into it and setup your environment.
 
@@ -38,9 +43,13 @@ Now you should be able to type the root command and get a working prompt, if so 
 
 First, clone this git repository:
 
-    git clone https://github.com/jhugon/hmumuToyAnalysis.git
+    git clone https://github.com/bregnery/hmumuToyAnalysis.git
 
-move into hmumuToyAnalysis.  analyzer.C is an example script for analyzing our Ntuples.  To run it, and load the needed libraries, execute:
+Then recompile CMSSW:
+
+    scram b
+    
+move into hmumuToyAnalysis.  analyzer.C is an script for analyzing our Ntuples.  To run it, and load the needed libraries, execute:
 
     root -b -q -x run.C
 
@@ -58,11 +67,11 @@ To display the histograms, type the command:
     
 Scale factors, monte carlo pathways, and the maximum number of events can be adjusted in the run file:
 
-    run.C
+    emacs run.C
     
 Make sure to run over all events when analyzing monte carlo data
     
 The selection criteria can be adjusted in the analysis file:
 
-    analyzer.C
+    emacs analyzer.C
     
