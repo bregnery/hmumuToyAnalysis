@@ -5,13 +5,13 @@ H->mumu Ntuple example analyzer code
 
 Data samples are available on the UF analysis cluster in
 
-    /raid/raid8/jhugon/higgsSamples/stage1/
+    /scratch/osg/bregnery/CMSSW_7_4_2/src/UserArea/UFDimuonsAnalyzer/stage1/
 
 which physically resides on the melrose node.
 
 Even better, you can access it on the /cms filesystem here:
 
-    /cms/data/store/user/jhugon/hmumu/stage1/
+    /cms/data/store/user/
 
 The current analyzer.C includes:
 *  Pileup reweighting
