@@ -44,6 +44,7 @@ Now you should be able to type the root command and get a working prompt, if so 
 First, clone this git repository:
 
     git clone https://github.com/bregnery/hmumuToyAnalysis.git
+    git pull origin vhmumu
 
 Then recompile CMSSW:
 
